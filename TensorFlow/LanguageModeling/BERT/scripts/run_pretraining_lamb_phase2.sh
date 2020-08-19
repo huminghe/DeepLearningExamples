@@ -36,9 +36,9 @@ DATA_DIR=${DATA_DIR:-data}
 RESULTS_DIR=${RESULTS_DIR:-/results}
 
 if [ "$bert_model" = "large" ] ; then
-    export BERT_CONFIG=data/download/nvidia_pretrained/bert_tf_pretraining_large_lamb/bert_config.json
+    export BERT_CONFIG=data/bert_config_large.json
 else
-    export BERT_CONFIG=data/download/nvidia_pretrained/bert_tf_squad11_base_128/bert_config.json
+    export BERT_CONFIG=data/bert_config.json
 fi
 
 echo "Container nvidia build = " $NVIDIA_BUILD_ID
@@ -88,8 +88,8 @@ train_steps_phase2=$(expr $train_steps_phase2 \* $gbs_phase1 \/ $gbs_phase2) # A
 RESULTS_DIR_PHASE2=${RESULTS_DIR}/phase_2
 mkdir -m 777 -p $RESULTS_DIR_PHASE2
 
-INPUT_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/books_wiki_en_corpus/training"
-EVAL_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/books_wiki_en_corpus/test"
+INPUT_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_300_test_split_10/zhihu/training"
+EVAL_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_300_test_split_10/zhihu/test"
 
 #Check if all necessary files are available before training
 for DIR_or_file in $DATA_DIR $RESULTS_DIR $BERT_CONFIG ${PHASE1_CKPT}.meta; do
@@ -99,7 +99,7 @@ for DIR_or_file in $DATA_DIR $RESULTS_DIR $BERT_CONFIG ${PHASE1_CKPT}.meta; do
   fi
 done
 
-$mpi python /workspace/bert/run_pretraining.py \
+$mpi python3 run_pretraining.py \
     --input_files_dir=$INPUT_FILES \
     --init_checkpoint=$PHASE1_CKPT \
     --eval_files_dir=$EVAL_FILES \

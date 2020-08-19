@@ -30,15 +30,22 @@ save_checkpoints_steps=${12:-100}
 num_accumulation_steps_phase1=${13:-128}
 num_accumulation_steps_phase2=${14:-512}
 bert_model=${15:-"large"}
+init_checkpoint=${16:-""}
 
 DATA_DIR=${DATA_DIR:-data}
 #Edit to save logs & checkpoints in a different directory
 RESULTS_DIR=${RESULTS_DIR:-/results}
 
 if [ "$bert_model" = "large" ] ; then
-    export BERT_CONFIG=data/download/nvidia_pretrained/bert_tf_pretraining_large_lamb/bert_config.json
+    export BERT_CONFIG=data/bert_config_large.json
 else
-    export BERT_CONFIG=data/download/nvidia_pretrained/bert_tf_squad11_base_128/bert_config.json
+    export BERT_CONFIG=data/bert_config.json
+fi
+
+extra=""
+
+if [ "$init_checkpoint" != "" ] ; then
+    extra="--init_checkpoint=$init_checkpoint"
 fi
 
 PREC=""
@@ -78,8 +85,8 @@ max_pred_per_seq=20
 RESULTS_DIR_PHASE1=${RESULTS_DIR}/phase_1
 mkdir -m 777 -p $RESULTS_DIR_PHASE1
 
-INPUT_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/books_wiki_en_corpus/training"
-EVAL_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_1472_test_split_10/books_wiki_en_corpus/test"
+INPUT_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_300_test_split_10/zhihu/training"
+EVAL_FILES="$DATA_DIR/tfrecord/lower_case_1_seq_len_${seq_len}_max_pred_${max_pred_per_seq}_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5_shard_300_test_split_10/zhihu/test"
 
 #Check if all necessary files are available before training
 for DIR_or_file in $DATA_DIR $RESULTS_DIR_PHASE1 $BERT_CONFIG; do
@@ -89,7 +96,7 @@ for DIR_or_file in $DATA_DIR $RESULTS_DIR_PHASE1 $BERT_CONFIG; do
   fi
 done
 
- $mpi python /workspace/bert/run_pretraining.py \
+ $mpi python3 run_pretraining.py \
      --input_files_dir=$INPUT_FILES \
      --eval_files_dir=$EVAL_FILES \
      --output_dir=$RESULTS_DIR_PHASE1 \
@@ -105,5 +112,5 @@ done
      --num_warmup_steps=$warmup_steps_phase1 \
      --save_checkpoints_steps=$save_checkpoints_steps \
      --learning_rate=$learning_rate_phase1 \
-     $horovod_str $PREC \
+     $extra $horovod_str $PREC \
      --allreduce_post_accumulation=True

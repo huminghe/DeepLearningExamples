@@ -57,7 +57,7 @@ flags.DEFINE_string(
 
 ## Other parameters
 flags.DEFINE_string(
-    "dllog_path", "/results/bert_dllog.json",
+    "dllog_path", "/data1/huminghe/DeepLearningExamples/TensorFlow/LanguageModeling/BERT/log/bert_dllog.json",
     "filename where dllogger writes to")
 
 flags.DEFINE_string(

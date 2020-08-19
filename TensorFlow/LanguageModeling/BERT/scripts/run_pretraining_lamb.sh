@@ -30,6 +30,7 @@ save_checkpoints_steps=${12:-100}
 num_accumulation_steps_phase1=${13:-128}
 num_accumulation_steps_phase2=${14:-512}
 bert_model=${15:-"large"}
+init_checkpoint=${16:-""}
 
 DATA_DIR=data
 export DATA_DIR=$DATA_DIR
@@ -40,7 +41,7 @@ printf -v TAG "tf_bert_pretraining_lamb_%s_%s_gbs1%d_gbs2%d" "$bert_model" "$pre
 DATESTAMP=`date +'%y%m%d%H%M%S'`
 
 #Edit to save logs & checkpoints in a different directory
-RESULTS_DIR=${RESULTS_DIR:-/results/${TAG}_${DATESTAMP}}
+RESULTS_DIR=/data1/huminghe/DeepLearningExamples/TensorFlow/LanguageModeling/BERT/results/${TAG}_${DATESTAMP}
 LOGFILE=$RESULTS_DIR/$TAG.$DATESTAMP.log
 mkdir -m 777 -p $RESULTS_DIR
 printf "Saving checkpoints to %s\n" "$RESULTS_DIR"
@@ -51,7 +52,7 @@ printf -v SCRIPT_ARGS "%d %d %d %e %e %s %s %d %d %d %d %d %d %d %s %s" \
                       $train_batch_size_phase1 $train_batch_size_phase2 $eval_batch_size $learning_rate_phase1 \
                       $learning_rate_phase2 "$precision" "$use_xla" $num_gpus $warmup_steps_phase1 \
                       $warmup_steps_phase2 $train_steps $save_checkpoints_steps \
-                      $num_accumulation_steps_phase1 $num_accumulation_steps_phase2 "$bert_model"
+                      $num_accumulation_steps_phase1 $num_accumulation_steps_phase2 "$bert_model" "$init_checkpoint"
 
 # RUN PHASE 1
 bash scripts/run_pretraining_lamb_phase1.sh $SCRIPT_ARGS |& tee -a $LOGFILE
